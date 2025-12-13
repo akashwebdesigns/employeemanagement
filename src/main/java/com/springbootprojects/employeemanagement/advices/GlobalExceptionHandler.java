@@ -18,22 +18,26 @@ public class GlobalExceptionHandler {
 
     //Will catch only ResourceNotFoundException
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiError> resourceNotFoundHandler(ResourceNotFoundException exception){
+    public ResponseEntity<ApiResponse<?>> resourceNotFoundHandler(ResourceNotFoundException exception){
         ApiError apiError = ApiError.builder().
                 statusCode(HttpStatus.NOT_FOUND).
                 message(exception.getMessage()).
                 build();
-        return new ResponseEntity<>(apiError, HttpStatus.NOT_FOUND);
+        return apiResponseWrapper(apiError);
+    }
+
+    public ResponseEntity<ApiResponse<?>> apiResponseWrapper(ApiError apiError){
+        return new ResponseEntity<>(new ApiResponse<>(apiError),apiError.getStatusCode());
     }
 
     //Will catch all other exceptions
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiError> internalServerErrorHandler(Exception exception){
+    public ResponseEntity<ApiResponse<?>> internalServerErrorHandler(Exception exception){
         ApiError apiError = ApiError.builder().
                 statusCode(HttpStatus.INTERNAL_SERVER_ERROR).
                 message(exception.getMessage()).
                 build();
-        return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
+        return apiResponseWrapper(apiError);
     }
 
     //Validation annotation exception
@@ -44,7 +48,7 @@ public class GlobalExceptionHandler {
     //API response.
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiError> inputValidationExceptionHandler(MethodArgumentNotValidException exception){
+    public ResponseEntity<ApiResponse<?>> inputValidationExceptionHandler(MethodArgumentNotValidException exception){
         //This type of exception binds all the exceptions into a single exception
         List<String> errors = exception.getBindingResult().
                 getAllErrors().
@@ -55,7 +59,7 @@ public class GlobalExceptionHandler {
                 statusCode(HttpStatus.BAD_REQUEST).
                 message(errors.toString()).
                 build();
-        return new ResponseEntity<>(apiError,HttpStatus.BAD_REQUEST);
+        return apiResponseWrapper(apiError);
     }
 
 }
